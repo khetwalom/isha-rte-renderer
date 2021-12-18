@@ -1,0 +1,64 @@
+.shaka-controls-button-panel {
+  display: flex;
+  justify-content: left;
+  justify-items: left;
+}
+
+.shaka-play-button {
+  background-color: white;
+  padding: 24px !important;
+}
+/* 
+.shaka-spinner-path {
+    stroke: #CD4327;
+    stroke-width: 1px;
+    r: 8px;
+    cx: 10px;
+    cy: 10px;
+} 
+
+.shaka-spinner-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    animation: unset; 
+    transform-origin: unset !important;
+    rotate 10s linear infinite  !important; */
+/* transform-origin: center center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.shaka-spinner {
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 3;
+    box-sizing: border-box;
+    padding: 40px;
+    width: 20px;
+    height: 20px;
+    filter: unset;
+} */
+
+.shaka-play-button {
+  padding: 1.5rem;
+  background-size: 70%;
+}
+
+.shaka-video-container {
+  /* override other styles to make responsive */
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100%;
+  align-self: center;
+  background-color: black;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}

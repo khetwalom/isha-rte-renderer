@@ -1,0 +1,46 @@
+/* rich-text-editor video preview wrapper  */
+.videoWrapper {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+}
+.videoWrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reset ul,li styles for rich text editor preview */
+
+ul,
+menu {
+  list-style-type: disc;
+  margin: 1em 0;
+  padding: 0 0 0 40px;
+}
+ol {
+  list-style-type: decimal;
+  margin: 1em 0;
+  padding: 0 0 0 40px;
+}
+ul ul,
+ol ul {
+  list-style-type: circle;
+}
+ul ul ul,
+ol ul ul,
+ul ol ul,
+ol ol ul {
+  list-style-type: square;
+}
+li {
+  margin: 1rem 0;
+}
+
+a {
+  text-decoration: underline !important;
+  color: #0089c7;
+  text-decoration-color: #a2dffb;
+}
