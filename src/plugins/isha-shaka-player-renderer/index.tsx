@@ -45,35 +45,35 @@
 
 // Add muxjs, needed for Shaka to play hls streams properly
 
-import muxjs from 'mux.js'
-import React, { useEffect, useRef } from 'react'
-import { isIOS, isIPad13 } from 'react-device-detect'
-import screenfull from 'screenfull'
-import 'shaka-player/dist/controls.css'
-import shakaSilent from 'shaka-player/dist/shaka-player.ui'
-import shakaDebug from 'shaka-player/dist/shaka-player.ui.debug'
-import { usePageVisibility } from './customHooks/usePageVisibility'
-import { lockToLandscape, lockToPortrait } from './utils'
-import './controls.css'
-import './custom.css'
+import muxjs from 'mux.js';
+import React, { useEffect, useRef } from 'react';
+import { isIOS, isIPad13 } from 'react-device-detect';
+import screenfull from 'screenfull';
+import 'shaka-player/dist/controls.css';
+import shakaSilent from 'shaka-player/dist/shaka-player.ui';
+import shakaDebug from 'shaka-player/dist/shaka-player.ui.debug';
+import { usePageVisibility } from './customHooks/usePageVisibility';
+import { lockToLandscape, lockToPortrait } from './utils';
+import './controls.css';
+import './custom.css';
 
-window.muxjs = muxjs
+window.muxjs = muxjs;
 
 // const log = new Logger.Logger('ShakaPlayer --> ', Logger.LOG_LEVEL_DEBUG);
 const log = {
   debug: console.log,
-  error: console.error
-}
+  error: console.error,
+};
 
-let shaka
-let player = null
-let ui = null
-let localPlayer = null
-let timesVideoGotStuck = 0
-let lastVideoTime = 0
-let videoStallDetectorInterval = 0
+let shaka;
+let player = null;
+let ui = null;
+let localPlayer = null;
+let timesVideoGotStuck = 0;
+let lastVideoTime = 0;
+let videoStallDetectorInterval = 0;
 
-const ShakaPlayer = ({
+const IshaShakaPlayer = ({
   onError,
   onStart,
   onPause,
@@ -88,223 +88,223 @@ const ShakaPlayer = ({
   autoPlay,
   controls,
   debug,
-  videoType
+  videoType,
 }) => {
-  const playerRef = useRef()
-  const shakaContainerRef = useRef()
-  const streamBufferingRetryTimeoutRef = useRef()
-  const streamErrorRetryTimeoutRef = useRef()
+  const playerRef = useRef();
+  const shakaContainerRef = useRef();
+  const streamBufferingRetryTimeoutRef = useRef();
+  const streamErrorRetryTimeoutRef = useRef();
   // const [buffering, setBuffering] = useState(false);
 
   const getPlayerStats = () => {
-    const playerState = player?.getStats()
+    const playerState = player?.getStats();
     const switchHistoryObject =
       playerState &&
       playerState.switchHistory &&
       playerState.switchHistory.reduce((acc, item, index) => {
-        acc[`switch-${index}`] = JSON.stringify(item)
-        return acc
-      }, {})
+        acc[`switch-${index}`] = JSON.stringify(item);
+        return acc;
+      }, {});
     const stateHistoryObject =
       playerState &&
       playerState.stateHistory &&
       playerState.stateHistory.reduce((acc, item, index) => {
-        acc[`state-${index}`] = JSON.stringify(item)
-        return acc
-      }, {})
+        acc[`state-${index}`] = JSON.stringify(item);
+        return acc;
+      }, {});
     return (
       playerState && {
         ...playerState,
         stateHistory: undefined,
         switchHistory: undefined,
         ...(switchHistoryObject ? switchHistoryObject : {}),
-        ...(stateHistoryObject ? stateHistoryObject : {})
+        ...(stateHistoryObject ? stateHistoryObject : {}),
       }
-    )
-  }
+    );
+  };
 
   const _onError = (evt) => {
-    const code = evt?.detail?.code
-    const offline = !window?.navigator?.onLine
+    const code = evt?.detail?.code;
+    const offline = !window?.navigator?.onLine;
     if (!streamErrorRetryTimeoutRef.current && !offline) {
-      console.log('-------start timeout on error--------')
+      console.log('-------start timeout on error--------');
       streamErrorRetryTimeoutRef.current = setTimeout(() => {
-        onSentryError('SHAKA_RETRY_' + code, { code, ...getPlayerStats() })
-        console.log('-------UNLOAD and LOAD after ERROR--------')
-        player.unload()
-        loadUrl(url)
-        streamErrorRetryTimeoutRef.current = undefined
-      }, 30000)
+        onSentryError('SHAKA_RETRY_' + code, { code, ...getPlayerStats() });
+        console.log('-------UNLOAD and LOAD after ERROR--------');
+        player.unload();
+        loadUrl(url);
+        streamErrorRetryTimeoutRef.current = undefined;
+      }, 30000);
     }
 
     try {
       onSentryError('ERROR_' + code, {
         ...(evt?.detail ? evt?.detail : evt),
-        ...getPlayerStats()
-      })
-      log.debug('_onError --> ', evt)
+        ...getPlayerStats(),
+      });
+      log.debug('_onError --> ', evt);
       if (onError) {
-        onError(evt)
+        onError(evt);
       }
     } catch (error) {
-      log.error('_onError -->', error)
+      log.error('_onError -->', error);
     }
-  }
+  };
 
   const _onUiError = (evt) => {
     try {
-      log.debug('_onUiError --> ', evt)
+      log.debug('_onUiError --> ', evt);
       if (onError) {
-        onError(evt)
+        onError(evt);
       }
     } catch (error) {
-      log.error('_onUiError -->', error)
+      log.error('_onUiError -->', error);
     }
-  }
+  };
 
   const _onStart = (evt) => {
     try {
       if (typeof onStart === 'function') {
-        onStart()
+        onStart();
       }
     } catch (error) {
-      log.error('_onStart -->', error)
+      log.error('_onStart -->', error);
     }
-  }
+  };
 
   const _onPause = (evt) => {
     try {
       if (typeof onPause === 'function') {
-        onPause()
+        onPause();
       }
     } catch (error) {
-      log.error('_onStart -->', error)
+      log.error('_onStart -->', error);
     }
-  }
+  };
 
   const _onLoaded = (evt) => {
     try {
       if (typeof onReady === 'function') {
-        onReady(evt)
+        onReady(evt);
       }
     } catch (error) {
-      log.error('_onStart -->', error)
+      log.error('_onStart -->', error);
     }
-  }
+  };
 
   const _onBuffering = (evt) => {
     try {
-      console.log('SHAKA BUFFER EVENT --> ', evt.buffering)
+      console.log('SHAKA BUFFER EVENT --> ', evt.buffering);
       if (typeof onBuffer === 'function' && evt.buffering) {
-        onBuffer()
+        onBuffer();
       } else if (typeof onBufferEnd === 'function' && !evt.buffering) {
-        onBufferEnd()
+        onBufferEnd();
       }
     } catch (error) {
-      log.error('_onStart -->', error)
+      log.error('_onStart -->', error);
     }
 
     try {
-      console.log('SHAKA BUFFER EVENT --> ', evt.buffering)
+      console.log('SHAKA BUFFER EVENT --> ', evt.buffering);
       if (typeof onBuffer === 'function' && evt.buffering) {
-        onBuffer()
+        onBuffer();
         if (!streamBufferingRetryTimeoutRef.current) {
-          console.log('-------start timeout on buffering--------')
+          console.log('-------start timeout on buffering--------');
           streamBufferingRetryTimeoutRef.current = setTimeout(() => {
-            onSentryError('SHAKA_RETRY_BUFFERING', getPlayerStats())
-            console.log('-------UNLOAD and LOAD after buffering--------')
-            player.unload()
-            loadUrl(url)
-            streamBufferingRetryTimeoutRef.current = undefined
-          }, 30000)
+            onSentryError('SHAKA_RETRY_BUFFERING', getPlayerStats());
+            console.log('-------UNLOAD and LOAD after buffering--------');
+            player.unload();
+            loadUrl(url);
+            streamBufferingRetryTimeoutRef.current = undefined;
+          }, 30000);
         }
       } else if (typeof onBufferEnd === 'function' && !evt.buffering) {
-        onBufferEnd()
+        onBufferEnd();
         if (streamBufferingRetryTimeoutRef.current) {
-          clearTimeout(streamBufferingRetryTimeoutRef.current)
-          streamBufferingRetryTimeoutRef.current = undefined
+          clearTimeout(streamBufferingRetryTimeoutRef.current);
+          streamBufferingRetryTimeoutRef.current = undefined;
         }
       }
     } catch (error) {
-      log.error('_onStart -->', error)
+      log.error('_onStart -->', error);
     }
-  }
+  };
 
   const loadUrl = async (url) => {
     try {
       if (url?.endsWith('.m3u8') || url?.endsWith('.mpd')) {
-        await player.load(url)
-        return true
+        await player.load(url);
+        return true;
       }
-      return false
+      return false;
     } catch (error) {
-      log.error('loadUrl --> ', error)
+      log.error('loadUrl --> ', error);
 
-      const code = error?.code
+      const code = error?.code;
       onSentryError('SHAKA_LOAD_ERROR_' + code, {
         ...getPlayerStats(),
-        ...error
-      })
+        ...error,
+      });
 
       if (!streamErrorRetryTimeoutRef.current) {
-        console.log('-------start timeout on load error--------')
+        console.log('-------start timeout on load error--------');
         streamErrorRetryTimeoutRef.current = setTimeout(() => {
           onSentryError('SHAKA_LOAD_RETRY_' + code, {
             code,
-            ...getPlayerStats()
-          })
-          console.log('-------UNLOAD and LOAD after LOAD ERROR--------')
-          player.unload()
-          loadUrl(url)
-          streamErrorRetryTimeoutRef.current = undefined
-        }, 30000)
+            ...getPlayerStats(),
+          });
+          console.log('-------UNLOAD and LOAD after LOAD ERROR--------');
+          player.unload();
+          loadUrl(url);
+          streamErrorRetryTimeoutRef.current = undefined;
+        }, 30000);
       }
     }
-  }
+  };
 
   const playPause = async (forcePause = false) => {
     try {
       if (playing && !forcePause) {
-        await playerRef.current.play()
+        await playerRef.current.play();
       } else {
-        await playerRef.current.pause()
+        await playerRef.current.pause();
       }
     } catch (error) {
-      log.error('on url change --> ', error)
+      log.error('on url change --> ', error);
     }
-  }
+  };
 
-  window.playPause = playPause
+  window.playPause = playPause;
 
   /**
    * Handle  play and pause input
    */
   useEffect(async () => {
     try {
-      await playPause()
+      await playPause();
     } catch (error) {
-      log.error('on url change --> ', error)
+      log.error('on url change --> ', error);
     }
-  }, [url, playing])
+  }, [url, playing]);
 
   /**
    * Handle volume changes
    */
   useEffect(async () => {
     try {
-      playerRef.current.volume = volume
+      playerRef.current.volume = volume;
     } catch (error) {
-      log.error('on url change --> ', error)
+      log.error('on url change --> ', error);
     }
-  }, [volume])
+  }, [volume]);
 
   useEffect(() => {
     const init = async () => {
-      shaka = debug === true ? shakaDebug : shakaSilent
-      shaka.polyfill.installAll()
+      shaka = debug === true ? shakaDebug : shakaSilent;
+      shaka.polyfill.installAll();
 
       if (shaka.Player.isBrowserSupported()) {
-        localPlayer = new shaka.Player(playerRef.current)
+        localPlayer = new shaka.Player(playerRef.current);
         let uiConfig = {
           addSeekBar: videoType === 'ON_DEMAND',
           addBigPlayButton: true,
@@ -314,14 +314,14 @@ const ShakaPlayer = ({
             'volume',
             'spacer',
             'fullscreen',
-            'overflow_menu'
+            'overflow_menu',
           ],
           overflowMenuButtons: ['quality'],
           volumeBarColors: {
             base: 'rgba(66, 133, 244, 0.5)',
-            level: 'rgb(66, 133, 244)'
-          }
-        }
+            level: 'rgb(66, 133, 244)',
+          },
+        };
 
         if (controls === false) {
           uiConfig = {
@@ -332,44 +332,44 @@ const ShakaPlayer = ({
             doubleClickForFullscreen: false,
             enableKeyboardPlaybackControls: false,
             enableFullscreenOnRotation: false,
-            forceLandscapeOnFullscreen: false
-          }
+            forceLandscapeOnFullscreen: false,
+          };
         }
 
         ui = new shaka.ui.Overlay(
           localPlayer,
           shakaContainerRef.current,
           playerRef.current
-        )
+        );
 
-        ui.configure(uiConfig)
-        controls = ui.getControls()
-        player = controls.getPlayer()
-        player.configure('streaming.jumpLargeGaps', true)
+        ui.configure(uiConfig);
+        controls = ui.getControls();
+        player = controls.getPlayer();
+        player.configure('streaming.jumpLargeGaps', true);
         if (process.env.REACT_APP_ENV !== 'PROD') {
           // TODO: this has not been tested yet
-          window.ui = ui
-          window.c = controls
-          window.shakap = player
-          window.shakac = player
+          window.ui = ui;
+          window.c = controls;
+          window.shakap = player;
+          window.shakac = player;
         }
 
         // add player events
-        player.addEventListener('error', _onError)
-        player.addEventListener('loaded', _onLoaded)
-        player.addEventListener('buffering', _onBuffering)
+        player.addEventListener('error', _onError);
+        player.addEventListener('loaded', _onLoaded);
+        player.addEventListener('buffering', _onBuffering);
 
-        controls.addEventListener('error', _onUiError)
+        controls.addEventListener('error', _onUiError);
 
-        await loadUrl(url)
+        await loadUrl(url);
 
         // add custom spinner
         // eslint-disable-next-line prefer-const
         let spinnerContainer = document.getElementsByClassName(
           'shaka-spinner-container'
-        )
+        );
         if (spinnerContainer.length > 0) {
-          console.log(spinnerContainer)
+          console.log(spinnerContainer);
           // ReactDOM.render(
           //   <Spinner className="w-64 h-64" />,
           //   spinnerContainer[0]
@@ -377,22 +377,22 @@ const ShakaPlayer = ({
         }
       } else {
         // This browser does not have the minimum set of APIs we need.
-        log.error('Browser not supported!')
+        log.error('Browser not supported!');
       }
-    }
+    };
     if (!isIOS && !isIPad13) {
       screenfull.on('change', () => {
-        console.log('Am I fullscreen?', screenfull.isFullscreen ? 'Yes' : 'No')
+        console.log('Am I fullscreen?', screenfull.isFullscreen ? 'Yes' : 'No');
         if (screenfull.isFullscreen) {
           // eslint-disable-next-line no-unused-expressions
-          window?.ReactNativeWebView?.postMessage('TURN LANDSCAPE')
-          lockToLandscape()
+          window?.ReactNativeWebView?.postMessage('TURN LANDSCAPE');
+          lockToLandscape();
         } else {
           // eslint-disable-next-line no-unused-expressions
-          window?.ReactNativeWebView?.postMessage('TURN PORTRAIT')
-          lockToPortrait()
+          window?.ReactNativeWebView?.postMessage('TURN PORTRAIT');
+          lockToPortrait();
         }
-      })
+      });
     } else {
       document.addEventListener('fullscreenchange', (event) => {
         // document.fullscreenElement will point to the element that
@@ -400,48 +400,48 @@ const ShakaPlayer = ({
         // the value of the property is null.
         if (document.fullscreenElement) {
           // eslint-disable-next-line no-unused-expressions
-          window?.ReactNativeWebView?.postMessage('TURN LANDSCAPE')
-          lockToLandscape()
+          window?.ReactNativeWebView?.postMessage('TURN LANDSCAPE');
+          lockToLandscape();
         } else {
           // eslint-disable-next-line no-unused-expressions
-          window?.ReactNativeWebView?.postMessage('TURN PORTRAIT')
-          lockToPortrait()
+          window?.ReactNativeWebView?.postMessage('TURN PORTRAIT');
+          lockToPortrait();
         }
-      })
+      });
     }
 
-    init()
+    init();
 
     return () => {
-      player.removeEventListener('error', _onError)
-      player.removeEventListener('loaded', _onLoaded)
-      player.removeEventListener('buffering', _onBuffering)
+      player.removeEventListener('error', _onError);
+      player.removeEventListener('loaded', _onLoaded);
+      player.removeEventListener('buffering', _onBuffering);
 
-      controls.removeEventListener('error', _onUiError)
+      controls.removeEventListener('error', _onUiError);
 
       if (streamBufferingRetryTimeoutRef.current) {
-        console.log('=======_onStart BUFFERING=========')
+        console.log('=======_onStart BUFFERING=========');
 
-        clearTimeout(streamBufferingRetryTimeoutRef.current)
-        streamBufferingRetryTimeoutRef.current = undefined
+        clearTimeout(streamBufferingRetryTimeoutRef.current);
+        streamBufferingRetryTimeoutRef.current = undefined;
       }
       if (streamErrorRetryTimeoutRef.current) {
-        console.log('=======_onStart ERROR=========')
+        console.log('=======_onStart ERROR=========');
 
-        clearTimeout(streamErrorRetryTimeoutRef.current)
-        streamErrorRetryTimeoutRef.current = undefined
+        clearTimeout(streamErrorRetryTimeoutRef.current);
+        streamErrorRetryTimeoutRef.current = undefined;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     const scanStall = () => {
       try {
-        const targetVideo = document.querySelector('video')
+        const targetVideo = document.querySelector('video');
         if (targetVideo === null) {
-          return
+          return;
         }
-        const time = targetVideo.currentTime ?? 0
+        const time = targetVideo.currentTime ?? 0;
         // console.group('STATS');
         // console.log('PLAYER TIME - ', time);
         // console.log('IS PLAYING - ', !document.querySelector('video')?.paused);
@@ -449,36 +449,36 @@ const ShakaPlayer = ({
         // console.log('TIMES PLAYER STUCK  - ', timesVideoGotStuck);
         // console.groupEnd();
         if (targetVideo.paused === true) {
-          return
+          return;
         }
         if (time) {
           if (time === lastVideoTime) {
-            timesVideoGotStuck++
+            timesVideoGotStuck++;
           } else {
-            timesVideoGotStuck = 0
+            timesVideoGotStuck = 0;
           }
-          lastVideoTime = time
+          lastVideoTime = time;
         }
         if (timesVideoGotStuck >= 15) {
-          timesVideoGotStuck = 0
-          lastVideoTime = 0
+          timesVideoGotStuck = 0;
+          lastVideoTime = 0;
           if (targetVideo) {
-            targetVideo.currentTime = 0
+            targetVideo.currentTime = 0;
           }
         }
       } catch (error) {
-        console.log('error in scanStall-->', error)
+        console.log('error in scanStall-->', error);
       }
-    }
+    };
 
-    timesVideoGotStuck = 0
-    lastVideoTime = 0
-    clearInterval(videoStallDetectorInterval)
-    videoStallDetectorInterval = setInterval(scanStall, 1000)
+    timesVideoGotStuck = 0;
+    lastVideoTime = 0;
+    clearInterval(videoStallDetectorInterval);
+    videoStallDetectorInterval = setInterval(scanStall, 1000);
     return () => {
-      clearInterval(videoStallDetectorInterval)
-    }
-  }, [])
+      clearInterval(videoStallDetectorInterval);
+    };
+  }, []);
 
   // const getVideoContainerDims = () => {
   //   if (screenfull.isFullscreen) {
@@ -492,9 +492,9 @@ const ShakaPlayer = ({
 
   usePageVisibility(async (val) => {
     if (!val) {
-      await playPause(true)
+      await playPause(true);
     }
-  })
+  });
 
   return (
     <div
@@ -504,16 +504,16 @@ const ShakaPlayer = ({
       }`}
     >
       <video
-        id='shaka-video'
+        id="shaka-video"
         poster={poster}
-        className=' w-full h-auto '
+        className=" w-full h-auto "
         ref={playerRef}
         autoPlay={autoPlay}
         onPlay={_onStart}
         onPause={_onPause}
       />
     </div>
-  )
-}
+  );
+};
 
-export default ShakaPlayer
+export default IshaShakaPlayer;

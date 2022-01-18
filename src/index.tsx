@@ -5,15 +5,15 @@ import Output from 'editorjs-react-renderer';
 import React, { useEffect, useState } from 'react';
 import './index.css';
 import ImageOutput from './plugins/image';
-import ShakaPlayer from './plugins/isha-shaka-player';
+import IshaShakaPlayer from './plugins/isha-shaka-player-renderer';
 import ParagraphOutput from './plugins/paragraph';
 
 const defaultRenderers = {
   image: ImageOutput,
   paragraph: ParagraphOutput,
-  video: ShakaPlayer,
+  video: IshaShakaPlayer,
 };
-const RteRenderer = ({ editorData, customRenderers = {} }) => {
+const IshaRteRenderer = ({ editorData, customRenderers = {} }) => {
   const [error, setError] = useState<string | null>(null);
   const [finalData, setFinalData] = useState<any>(null);
 
@@ -69,4 +69,4 @@ const RteRenderer = ({ editorData, customRenderers = {} }) => {
   );
 };
 
-export default RteRenderer;
+export default IshaRteRenderer;
