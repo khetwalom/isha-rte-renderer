@@ -1,6 +1,6 @@
 {
   "name": "isha-rte-renderer",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "description": "Rich text renderer for ISHA internal projects",
   "scripts": {
     "rollup": "rollup -c"

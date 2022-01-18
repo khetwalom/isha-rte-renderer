@@ -5,14 +5,13 @@ import Output from 'editorjs-react-renderer';
 import React, { useEffect, useState } from 'react';
 import './index.css';
 import ImageOutput from './plugins/image';
-import IshaShakaPlayer from './plugins/isha-shaka-player-renderer';
 import ParagraphOutput from './plugins/paragraph';
 
 const defaultRenderers = {
   image: ImageOutput,
   paragraph: ParagraphOutput,
-  video: IshaShakaPlayer,
 };
+
 const IshaRteRenderer = ({ editorData, customRenderers = {} }) => {
   const [error, setError] = useState<string | null>(null);
   const [finalData, setFinalData] = useState<any>(null);
